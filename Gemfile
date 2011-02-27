@@ -1,9 +1,9 @@
 source :gemcutter
 gem 'sinatra', :require => 'sinatra/base'
 gem 'tinder'
-gem 'faraday'
+gem 'faraday', '~> 0.5.7'
+gem 'instagram'
 gem 'typhoeus'
-gem 'oauth2'
 gem 'sequel'
 gem 'yajl-ruby', :require => 'yajl'
 

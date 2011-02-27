@@ -12,6 +12,10 @@ ENV['DATABASE_URL']    = 'sqlite:/'
 
 require File.expand_path('../instagram_campfire_hook', __FILE__)
 
+Instagram.configure do |c|
+  c.adapter = :test
+end
+
 class InstagramCampfireHookApp
   set :environment, :test
   set :campfire_http do
@@ -21,13 +25,40 @@ class InstagramCampfireHookApp
     end
     obj
   end
+
+  set :instagram_client, Instagram.client
+end
+
+class Instagram::API
+  attr_accessor :stubs
+  def connection(raw = false)
+    options = {
+      :headers => {'Accept' => "application/#{format}; charset=utf-8", 'User-Agent' => user_agent},
+      :proxy => proxy,
+      :ssl => {:verify => false},
+      :url => endpoint,
+    }
+
+    Faraday.new(options) do |connection|
+      connection.use Faraday::Request::OAuth2, client_id, access_token
+      connection.adapter(:test, @stubs)
+      connection.use Faraday::Response::RaiseHttp5xx
+      unless raw
+        case format.to_s.downcase
+        when 'json' then connection.use Faraday::Response::ParseJson
+        end
+      end
+      connection.use Faraday::Response::RaiseHttp4xx
+      connection.use Faraday::Response::Mashify unless raw
+    end
+  end
 end
 
 class InstagramCampfireHookTest < Test::Unit::TestCase
   include Rack::Test::Methods
 
   def test_receives_webhook
-    @stubs.get("/users/1234/media/recent?access_token=") { stubbed_image }
+    @instagram.stubs.get("/v1/users/1234/media/recent.json?access_token=") { stubbed_image }
 
     events = [{:subscription_id => 1, :object => 'user',
       :object_id => '1234', :changed_aspect => 'media',
@@ -40,7 +71,7 @@ class InstagramCampfireHookTest < Test::Unit::TestCase
   end
 
   def test_receives_webhook_without_caption
-    @stubs.get("/users/1234/media/recent?access_token=") do
+    @instagram.stubs.get("/v1/users/1234/media/recent.json?access_token=") do
       stubbed_image :caption => nil
     end
 
@@ -55,7 +86,7 @@ class InstagramCampfireHookTest < Test::Unit::TestCase
   end
 
   def test_receives_webhook_without_location
-    @stubs.get("/users/1234/media/recent?access_token=") do
+    @instagram.stubs.get("/v1/users/1234/media/recent.json?access_token=") do
       stubbed_image :location => nil
     end
 
@@ -70,7 +101,7 @@ class InstagramCampfireHookTest < Test::Unit::TestCase
   end
 
   def test_receives_webhook_without_location_or_caption
-    @stubs.get("/users/1234/media/recent?access_token=") do
+    @instagram.stubs.get("/v1/users/1234/media/recent.json?access_token=") do
       stubbed_image :caption => nil, :location => nil
     end
 
@@ -85,7 +116,7 @@ class InstagramCampfireHookTest < Test::Unit::TestCase
   end
 
   def test_searches_by_location
-    @stubs.get("/media/search?client_id=&client_secret=&lat=lat&lng=lng&max_timestamp=&min_timestamp=") do
+    @instagram.stubs.get("/v1/media/search.json?lat=lat&lng=lng&max_timestamp=&min_timestamp=") do
       stubbed_image
     end
 
@@ -100,10 +131,8 @@ class InstagramCampfireHookTest < Test::Unit::TestCase
 
   def setup
     $messages = []
-    @stubs = Faraday::Adapter::Test::Stubs.new
-    InstagramCampfireHookApp.settings.instagram_http = Faraday.new('http://localhost') do |b|
-      b.adapter :test, @stubs
-    end
+    @instagram = InstagramCampfireHookApp.settings.instagram_client
+    @instagram.stubs = Faraday::Adapter::Test::Stubs.new
   end
 
   def app

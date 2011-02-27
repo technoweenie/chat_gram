@@ -3,13 +3,12 @@ require 'bundler'
 Bundler.require
 
 class InstagramCampfireHookApp < Sinatra::Base
-  set :instagram_http => Faraday.new("https://api.instagram.com/v1"),
-      :instagram_lat  => ENV['INSTAGRAM_LAT'],
+  set :instagram_lat  => ENV['INSTAGRAM_LAT'],
       :instagram_lng  => ENV['INSTAGRAM_LNG']
 
   set :campfire_http do
     url  = "https://#{ENV['CAMPFIRE_DOMAIN']}.campfirenow.com/room"
-    conn = Faraday::Connection.new url do |b|
+    conn = Faraday.new url do |b|
       b.request  :yajl
       b.adapter  :typhoeus
     end
@@ -17,16 +16,23 @@ class InstagramCampfireHookApp < Sinatra::Base
     conn
   end
 
-  set :photo_room, ENV["CAMPFIRE_PHOTO"]
-  set :debug_room, ENV["CAMPFIRE_DEBUG"]
-
-  set :oauth, OAuth2::Client.new(ENV['INSTAGRAM_ID'], ENV['INSTAGRAM_SECRET'],
-                                 :site => 'https://api.instagram.com/oauth/authorize')
+  set :photo_room => ENV["CAMPFIRE_PHOTO"],
+      :debug_room => ENV["CAMPFIRE_DEBUG"]
 
   configure do
     DB = (url = ENV['DATABASE_URL']) ?
       Sequel.connect(url) :
       Sequel.sqlite
+
+    Instagram.configure do |c|
+      c.client_id     = ENV['INSTAGRAM_ID']
+      c.client_secret = ENV['INSTAGRAM_SECRET']
+      c.adapter       = :typhoeus
+    end
+  end
+
+  before do
+    @instagram = settings.instagram_client || Instagram.client
   end
 
   get '/' do
@@ -38,17 +44,14 @@ class InstagramCampfireHookApp < Sinatra::Base
   end
 
   get '/search' do
-    res = settings.instagram_http.get("media/search") do |req|
-      req.params['client_id']     = settings.oauth.id
-      req.params['client_secret'] = settings.oauth.secret
-      req.params['lat']           = params[:lat] || settings.instagram_lat
-      req.params['lng']           = params[:lng] || settings.instagram_lng
-      req.params['max_timestamp'] = params[:max]
-      req.params['min_timestamp'] = params[:min]
-    end
-    images = Yajl.load(res.body)['data']
+    images = @instagram.media_search \
+      params[:lat] || settings.instagram_lat,
+      params[:lng] || settings.instagram_lng,
+      :max_timestamp => params[:max],
+      :min_timestamp => params[:min]
+
     image  = images[rand(images.size)]
-    url    = image['images']['standard_resolution']['url']
+    url    = image.images.standard_resolution.url
     image_text(image) + "\n" + url
   end
 
@@ -58,11 +61,9 @@ class InstagramCampfireHookApp < Sinatra::Base
       json = request.body.read
       data = Yajl.load(json)
       data.each do |payload|
-        res  = settings.instagram_http.get("users/#{payload['object_id']}/media/recent") do |req|
-          req.params['access_token'] = ENV['ACCESS_TOKEN']
-        end
-
-        display_image Yajl.load(res.body)['data'][0]
+        images = @instagram.user_recent_media payload['object_id'],
+                   :access_token => ENV['ACCESS_TOKEN']
+        display_image images.first
       end
       'ok'
     rescue Object => err
@@ -73,24 +74,21 @@ class InstagramCampfireHookApp < Sinatra::Base
   end
 
   get '/auth' do
-    redirect settings.oauth.web_server.authorize_url(
+    redirect @instagram.authorize_url \
           :redirect_uri => callback_url,
-          :scope => 'basic likes') + '&response_type=code'
+          :scope => 'basic likes'
   end
 
   get '/auth/callback' do
     user = nil
     begin
-      api  = settings.oauth.web_server.
-        get_access_token(params[:code],
-                         :redirect_uri  => callback_url,
-                         :response_type => 'code',
-                         :grant_type    => 'authorization_code')
-      user = settings.instagram_http.get('users/self') { |r| r.params['access_token'] = api.token }
-      user = Yajl.load(user.body)
+      api = @instagram.get_access_token params[:code],
+                                        :redirect_uri => callback_url
+
+      user = @instagram.user :access_token => api.access_token
       num  = DB[:users].
-        where(:username => user['data']['username']).
-        update(:token => api.token)
+        where(:username => user.username).
+        update(:token => api.access_token)
       if num > 0
         '\m/'
       else
@@ -113,23 +111,20 @@ class InstagramCampfireHookApp < Sinatra::Base
     end
 
     def image_text(img)
-      txt = if capt = img['caption']
-        if loc = img['location']
-          "#{capt['text']} at #{loc['name']}"
+      txt = if capt = img.caption
+        if loc = img.location
+          "#{capt.text} at #{loc.name}"
         else
-          capt['text']
+          capt.text
         end
-      elsif loc = img['location']
-        loc['name']
+      elsif loc = img.location
+        loc.name
       end
-      "%s by %s %s" % [
-        txt,
-        img['user']['username'],
-        img['link']]
+      "%s by %s %s" % [txt, img.user.username, img.link]
     end
 
     def display_image(img)
-      url = img['images']['standard_resolution']['url']
+      url = img.images.standard_resolution.url
       speak settings.photo_room, image_text(img).strip
       speak settings.photo_room, url
     end
