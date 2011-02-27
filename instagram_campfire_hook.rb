@@ -61,7 +61,7 @@ class InstagramCampfireHookApp < Sinatra::Base
       data.each do |payload|
         images = @instagram.user_recent_media payload['object_id']
         image  = images.first
-        if DB[:users].where(:username => image.user.username).count.empty?
+        if DB[:users].where(:username => image.user.username).count.zero?
           puts "#{image.user.username} is not authorized for campfire"
         else
           display_image image

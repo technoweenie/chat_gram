@@ -53,6 +53,13 @@ class Instagram::API
   end
 end
 
+DB.create_table :users do
+  primary_key :id
+  String :username, :unique => true, :null => false
+  String :token
+end
+DB[:users].insert :username => 'user!'
+
 class InstagramCampfireHookTest < Test::Unit::TestCase
   include Rack::Test::Methods
 
@@ -60,8 +67,7 @@ class InstagramCampfireHookTest < Test::Unit::TestCase
     @instagram.stubs.get("/v1/users/1234/media/recent.json?") { stubbed_image }
 
     events = [{:subscription_id => 1, :object => 'user',
-      :object_id => '1234', :changed_aspect => 'media',
-      :time => 1297286541}]
+      :object_id => '1234', :changed_aspect => 'media'}]
 
     post '/image', nil, :input => Yajl.dump(events)
     assert_equal ['photo', 'image!'], $messages.pop
@@ -75,8 +81,7 @@ class InstagramCampfireHookTest < Test::Unit::TestCase
     end
 
     events = [{:subscription_id => 1, :object => 'user',
-      :object_id => '1234', :changed_aspect => 'media',
-      :time => 1297286541}]
+      :object_id => '1234', :changed_aspect => 'media'}]
 
     post '/image', nil, :input => Yajl.dump(events)
     assert_equal ['photo', 'image!'], $messages.pop
@@ -90,8 +95,7 @@ class InstagramCampfireHookTest < Test::Unit::TestCase
     end
 
     events = [{:subscription_id => 1, :object => 'user',
-      :object_id => '1234', :changed_aspect => 'media',
-      :time => 1297286541}]
+      :object_id => '1234', :changed_aspect => 'media'}]
 
     post '/image', nil, :input => Yajl.dump(events)
     assert_equal ['photo', 'image!'], $messages.pop
@@ -105,8 +109,7 @@ class InstagramCampfireHookTest < Test::Unit::TestCase
     end
 
     events = [{:subscription_id => 1, :object => 'user',
-      :object_id => '1234', :changed_aspect => 'media',
-      :time => 1297286541}]
+      :object_id => '1234', :changed_aspect => 'media'}]
 
     post '/image', nil, :input => Yajl.dump(events)
     assert_equal ['photo', 'image!'], $messages.pop
