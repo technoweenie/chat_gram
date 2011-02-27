@@ -65,7 +65,7 @@ class InstagramCampfireHookTest < Test::Unit::TestCase
 
     post '/image', nil, :input => Yajl.dump(events)
     assert_equal ['photo', 'image!'], $messages.pop
-    assert_equal ['photo', 'caption! at location! by user! link!'], $messages.pop
+    assert_equal ['photo', 'caption! at location! by user! on Wed, Feb 02, 2011 @ 09:18 PM link!'], $messages.pop
     assert_nil $messages.pop
   end
 
@@ -80,7 +80,7 @@ class InstagramCampfireHookTest < Test::Unit::TestCase
 
     post '/image', nil, :input => Yajl.dump(events)
     assert_equal ['photo', 'image!'], $messages.pop
-    assert_equal ['photo', 'location! by user! link!'], $messages.pop
+    assert_equal ['photo', 'location! by user! on Wed, Feb 02, 2011 @ 09:18 PM link!'], $messages.pop
     assert_nil $messages.pop
   end
 
@@ -95,7 +95,7 @@ class InstagramCampfireHookTest < Test::Unit::TestCase
 
     post '/image', nil, :input => Yajl.dump(events)
     assert_equal ['photo', 'image!'], $messages.pop
-    assert_equal ['photo', 'caption! by user! link!'], $messages.pop
+    assert_equal ['photo', 'caption! by user! on Wed, Feb 02, 2011 @ 09:18 PM link!'], $messages.pop
     assert_nil $messages.pop
   end
 
@@ -110,7 +110,23 @@ class InstagramCampfireHookTest < Test::Unit::TestCase
 
     post '/image', nil, :input => Yajl.dump(events)
     assert_equal ['photo', 'image!'], $messages.pop
-    assert_equal ['photo', 'by user! link!'], $messages.pop
+    assert_equal ['photo', 'by user! on Wed, Feb 02, 2011 @ 09:18 PM link!'], $messages.pop
+    assert_nil $messages.pop
+  end
+
+  def test_receives_webhook_with_recent_time
+    now = Time.now
+    @instagram.stubs.get("/v1/users/1234/media/recent.json?") do
+      stubbed_image :caption => nil, :location => nil,
+        :created_time => Time.local(now.year, now.month, now.day, 21, 18).to_i
+    end
+
+    events = [{:subscription_id => 1, :object => 'user',
+      :object_id => '1234', :changed_aspect => 'media'}]
+
+    post '/image', nil, :input => Yajl.dump(events)
+    assert_equal ['photo', 'image!'], $messages.pop
+    assert_equal ['photo', 'by user! @ 09:18 PM link!'], $messages.pop
     assert_nil $messages.pop
   end
 
@@ -120,7 +136,7 @@ class InstagramCampfireHookTest < Test::Unit::TestCase
     end
 
     get "/search"
-    assert_equal "caption! at location! by user! link!\nimage!", last_response.body
+    assert_equal "caption! at location! by user! on Wed, Feb 02, 2011 @ 09:18 PM link!\nimage!", last_response.body
   end
 
   def test_responds_to_challenge
@@ -144,7 +160,8 @@ class InstagramCampfireHookTest < Test::Unit::TestCase
       :location => {:name => 'location!'},
       :user     => {:username => 'user!'},
       :link     => 'link!',
-      :images   => {:standard_resolution => {:url => 'image!'}}
+      :images   => {:standard_resolution => {:url => 'image!'}},
+      :created_time => '1296710327'
     }.update(custom)])]
   end
 end
