@@ -1,6 +1,5 @@
 source :gemcutter
 gem 'sinatra', :require => 'sinatra/base'
-gem 'tinder'
 gem 'faraday', '~> 0.5.7'
 gem 'instagram'
 gem 'typhoeus'
