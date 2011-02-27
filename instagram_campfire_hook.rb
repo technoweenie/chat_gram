@@ -2,6 +2,16 @@ require 'rubygems'
 require 'bundler'
 Bundler.require
 
+Instagram.configure do |c|
+  c.client_id     = ENV['INSTAGRAM_ID']
+  c.client_secret = ENV['INSTAGRAM_SECRET']
+  c.access_token  = ENV['ACCESS_TOKEN']
+end
+
+DB = (url = ENV['DATABASE_URL']) ?
+  Sequel.connect(url) :
+  Sequel.sqlite
+
 class InstagramCampfireHookApp < Sinatra::Base
   set :instagram_lat    => ENV['INSTAGRAM_LAT'],
       :instagram_lng    => ENV['INSTAGRAM_LNG'],
@@ -18,19 +28,6 @@ class InstagramCampfireHookApp < Sinatra::Base
   end
 
   set :campfire_room => ENV["CAMPFIRE_ROOM"]
-
-  configure do
-    DB = (url = ENV['DATABASE_URL']) ?
-      Sequel.connect(url) :
-      Sequel.sqlite
-
-    Instagram.configure do |c|
-      c.client_id     = ENV['INSTAGRAM_ID']
-      c.client_secret = ENV['INSTAGRAM_SECRET']
-      c.access_token  = ENV['ACCESS_TOKEN']
-      c.adapter       = :typhoeus
-    end
-  end
 
   before do
     @instagram = settings.instagram_client || Instagram.client
@@ -67,7 +64,7 @@ class InstagramCampfireHookApp < Sinatra::Base
       end
       'ok'
     rescue Object => err
-      logger.error res.body.inspect if res
+      puts res.body.inspect if res
       raise
     end
   end
@@ -79,25 +76,20 @@ class InstagramCampfireHookApp < Sinatra::Base
   end
 
   get '/auth/callback' do
-    user = nil
+    res = nil
     begin
-      api = @instagram.get_access_token params[:code],
-                                        :redirect_uri => callback_url
-
-      user = @instagram.user :access_token => api.access_token
+      data = @instagram.get_access_token params[:code],
+                                         :redirect_uri => callback_url
       num  = DB[:users].
-        where(:username => user.username).
-        update(:token => api.access_token)
+        where(:username => data.user.username).
+        update(:token => data.access_token)
       if num > 0
         '\m/'
       else
-        "gtfo (ask hubot about #{user.inspect})"
+        "gtfo (ask hubot about #{res.inspect})"
       end
-    rescue OAuth2::HTTPError => e
-      logger.error e.response.inspect
-      raise
     rescue Object => e
-      logger.error user.inspect
+      puts res.inspect
       raise
     end
   end

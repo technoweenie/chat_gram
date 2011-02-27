@@ -2,7 +2,7 @@ source :gemcutter
 gem 'sinatra', :require => 'sinatra/base'
 gem 'faraday', '~> 0.5.7'
 gem 'instagram'
-gem 'typhoeus'
+gem 'excon'
 gem 'sequel'
 gem 'yajl-ruby', :require => 'yajl'
 
