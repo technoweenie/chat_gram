@@ -21,7 +21,7 @@ class InstagramCampfireHookApp < Sinatra::Base
     url  = "https://#{ENV['CAMPFIRE_DOMAIN']}.campfirenow.com/room"
     conn = Faraday.new url do |b|
       b.request  :yajl
-      b.adapter  :typhoeus
+      b.adapter  :excon
     end
     conn.basic_auth(ENV['CAMPFIRE_TOKEN'], 'X')
     conn
@@ -60,7 +60,12 @@ class InstagramCampfireHookApp < Sinatra::Base
       data = Yajl.load(json)
       data.each do |payload|
         images = @instagram.user_recent_media payload['object_id']
-        display_image images.first
+        image  = images.first
+        if DB[:users].where(:username => image.user.username).count.empty?
+          puts "#{image.user.username} is not authorized for campfire"
+        else
+          display_image image
+        end
       end
       'ok'
     rescue Object => err
@@ -80,14 +85,10 @@ class InstagramCampfireHookApp < Sinatra::Base
     begin
       data = @instagram.get_access_token params[:code],
                                          :redirect_uri => callback_url
-      num  = DB[:users].
+      DB[:users].
         where(:username => data.user.username).
         update(:token => data.access_token)
-      if num > 0
-        '\m/'
-      else
-        "gtfo (ask hubot about #{res.inspect})"
-      end
+      '\m/'
     rescue Object => e
       puts res.inspect
       raise
