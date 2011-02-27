@@ -3,8 +3,9 @@ require 'bundler'
 Bundler.require
 
 class InstagramCampfireHookApp < Sinatra::Base
-  set :instagram_lat  => ENV['INSTAGRAM_LAT'],
-      :instagram_lng  => ENV['INSTAGRAM_LNG']
+  set :instagram_lat    => ENV['INSTAGRAM_LAT'],
+      :instagram_lng    => ENV['INSTAGRAM_LNG'],
+      :instagram_client => nil
 
   set :campfire_http do
     url  = "https://#{ENV['CAMPFIRE_DOMAIN']}.campfirenow.com/room"
