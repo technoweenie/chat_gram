@@ -3,7 +3,10 @@ require 'bundler'
 Bundler.require
 
 class InstagramCampfireHookApp < Sinatra::Base
-  set :instagram_http, Faraday::Connection.new("https://api.instagram.com/v1")
+  set :instagram_http => Faraday.new("https://api.instagram.com/v1"),
+      :instagram_lat  => ENV['INSTAGRAM_LAT'],
+      :instagram_lng  => ENV['INSTAGRAM_LNG']
+
   set :campfire_http do
     url  = "https://#{ENV['CAMPFIRE_DOMAIN']}.campfirenow.com/room"
     conn = Faraday::Connection.new url do |b|
@@ -36,10 +39,10 @@ class InstagramCampfireHookApp < Sinatra::Base
 
   get '/search' do
     res = settings.instagram_http.get("media/search") do |req|
-      req.params['client_id'] = settings.oauth.id
+      req.params['client_id']     = settings.oauth.id
       req.params['client_secret'] = settings.oauth.secret
-      req.params['lat']           = params[:lat] || '37.786937'
-      req.params['lng']           = params[:lng] || '-122.398038'
+      req.params['lat']           = params[:lat] || settings.instagram_lat
+      req.params['lng']           = params[:lng] || settings.instagram_lng
       req.params['max_timestamp'] = params[:max]
       req.params['min_timestamp'] = params[:min]
     end
@@ -63,7 +66,7 @@ class InstagramCampfireHookApp < Sinatra::Base
       end
       'ok'
     rescue Object => err
-      speak settings.debug_room, res.body
+      speak settings.debug_room, res.body if res
       speak settings.debug_room, "#{err}\n  #{err.backtrace.join("\n  ")}"
       'nope'
     end
