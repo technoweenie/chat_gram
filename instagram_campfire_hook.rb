@@ -16,8 +16,7 @@ class InstagramCampfireHookApp < Sinatra::Base
     conn
   end
 
-  set :photo_room => ENV["CAMPFIRE_PHOTO"],
-      :debug_room => ENV["CAMPFIRE_DEBUG"]
+  set :campfire_room => ENV["CAMPFIRE_ROOM"]
 
   configure do
     DB = (url = ENV['DATABASE_URL']) ?
@@ -67,9 +66,8 @@ class InstagramCampfireHookApp < Sinatra::Base
       end
       'ok'
     rescue Object => err
-      speak settings.debug_room, res.body if res
-      speak settings.debug_room, "#{err}\n  #{err.backtrace.join("\n  ")}"
-      'nope'
+      logger.error res.body.inspect if res
+      raise
     end
   end
 
@@ -95,18 +93,17 @@ class InstagramCampfireHookApp < Sinatra::Base
         "gtfo (ask hubot about #{user.inspect})"
       end
     rescue OAuth2::HTTPError => e
-      speak settings.debug_room, e.response.inspect
-      'oauth error (check debug room)'
+      logger.error e.response.inspect
+      raise
     rescue Object => e
-      speak settings.debug_room, user.inspect
-      speak settings.debug_room, "#{e}\n  #{e.backtrace.join("\n  ")}"
-      'big error (check debug room)'
+      logger.error user.inspect
+      raise
     end
   end
 
   helpers do
-    def speak(room, text)
-      settings.campfire_http.post("#{room}/speak.json",
+    def speak(text)
+      settings.campfire_http.post("#{settings.campfire_room}/speak.json",
                                   :message => {:body => text})
     end
 
@@ -125,8 +122,8 @@ class InstagramCampfireHookApp < Sinatra::Base
 
     def display_image(img)
       url = img.images.standard_resolution.url
-      speak settings.photo_room, image_text(img).strip
-      speak settings.photo_room, url
+      speak image_text(img).strip
+      speak url
     end
 
     def callback_url

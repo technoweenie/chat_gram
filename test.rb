@@ -5,8 +5,7 @@ Bundler.require(:test)
 
 ENV["INSTAGRAM_LAT"]   = 'lat'
 ENV["INSTAGRAM_LNG"]   = 'lng'
-ENV['CAMPFIRE_PHOTO']  = 'photo'
-ENV['CAMPFIRE_DEBUG']  = 'debug'
+ENV['CAMPFIRE_ROOM']   = 'photo'
 ENV['CAMPFIRE_DOMAIN'] = "none"
 ENV['DATABASE_URL']    = 'sqlite:/'
 
