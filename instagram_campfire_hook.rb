@@ -27,6 +27,7 @@ class InstagramCampfireHookApp < Sinatra::Base
     Instagram.configure do |c|
       c.client_id     = ENV['INSTAGRAM_ID']
       c.client_secret = ENV['INSTAGRAM_SECRET']
+      c.access_token  = ENV['ACCESS_TOKEN']
       c.adapter       = :typhoeus
     end
   end
@@ -61,8 +62,7 @@ class InstagramCampfireHookApp < Sinatra::Base
       json = request.body.read
       data = Yajl.load(json)
       data.each do |payload|
-        images = @instagram.user_recent_media payload['object_id'],
-                   :access_token => ENV['ACCESS_TOKEN']
+        images = @instagram.user_recent_media payload['object_id']
         display_image images.first
       end
       'ok'

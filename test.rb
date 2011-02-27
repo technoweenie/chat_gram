@@ -58,7 +58,7 @@ class InstagramCampfireHookTest < Test::Unit::TestCase
   include Rack::Test::Methods
 
   def test_receives_webhook
-    @instagram.stubs.get("/v1/users/1234/media/recent.json?access_token=") { stubbed_image }
+    @instagram.stubs.get("/v1/users/1234/media/recent.json?") { stubbed_image }
 
     events = [{:subscription_id => 1, :object => 'user',
       :object_id => '1234', :changed_aspect => 'media',
@@ -71,7 +71,7 @@ class InstagramCampfireHookTest < Test::Unit::TestCase
   end
 
   def test_receives_webhook_without_caption
-    @instagram.stubs.get("/v1/users/1234/media/recent.json?access_token=") do
+    @instagram.stubs.get("/v1/users/1234/media/recent.json?") do
       stubbed_image :caption => nil
     end
 
@@ -86,7 +86,7 @@ class InstagramCampfireHookTest < Test::Unit::TestCase
   end
 
   def test_receives_webhook_without_location
-    @instagram.stubs.get("/v1/users/1234/media/recent.json?access_token=") do
+    @instagram.stubs.get("/v1/users/1234/media/recent.json?") do
       stubbed_image :location => nil
     end
 
@@ -101,7 +101,7 @@ class InstagramCampfireHookTest < Test::Unit::TestCase
   end
 
   def test_receives_webhook_without_location_or_caption
-    @instagram.stubs.get("/v1/users/1234/media/recent.json?access_token=") do
+    @instagram.stubs.get("/v1/users/1234/media/recent.json?") do
       stubbed_image :caption => nil, :location => nil
     end
 
