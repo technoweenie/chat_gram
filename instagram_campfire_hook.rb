@@ -46,7 +46,8 @@ class InstagramCampfireHookApp < Sinatra::Base
       params[:lat] || settings.instagram_lat,
       params[:lng] || settings.instagram_lng,
       :max_timestamp => params[:max],
-      :min_timestamp => params[:min]
+      :min_timestamp => params[:min],
+      :distance      => params[:distance] || '1000'
 
     image  = images[rand(images.size)]
     url    = image.images.standard_resolution.url
