@@ -49,9 +49,12 @@ class InstagramCampfireHookApp < Sinatra::Base
       :min_timestamp => params[:min],
       :distance      => params[:distance] || '1000'
 
-    image  = images[rand(images.size)]
-    url    = image.images.standard_resolution.url
-    image_text(image) + "\n" + url
+    if image = images[rand(images.size)]
+      url = image.images.standard_resolution.url
+      image_text(image) + "\n" + url
+    else
+      "empty search!"
+    end
   end
 
   post '/image' do
