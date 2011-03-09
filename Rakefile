@@ -19,5 +19,7 @@ task :add do
 end
 
 task :list do
-  puts DB[:users].all
+  DB[:users].each do |user|
+    puts "#{user[:username]} #{user[:token] ? '\m/' : ':('}"
+  end
 end
