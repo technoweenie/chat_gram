@@ -23,3 +23,7 @@ task :list do
     puts "#{user[:username]} #{user[:token] ? '\m/' : ':('}"
   end
 end
+
+task :dump do
+  puts DB[:users].all
+end
