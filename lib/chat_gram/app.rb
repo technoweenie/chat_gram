@@ -8,14 +8,45 @@ module ChatGram
       @instagram = settings.instagram_client || Instagram.client
     end
 
+    # lol homepage
     get '/' do
       'hwat'
     end
 
-    get '/image' do
-      params['hub.challenge'] || '\m/'
+    # This is the endpoint to provide start the OAuth authorization process.
+    #
+    # See http://instagram.com/developer/auth/
+    get '/auth' do
+      redirect @instagram.authorize_url \
+            :redirect_uri => callback_url,
+            :scope => 'basic likes'
     end
 
+    # This is the OAuth callback. This should store the user's token.
+    #
+    # See http://instagram.com/developer/auth/
+    get '/auth/callback' do
+      res = nil
+      begin
+        data = @instagram.get_access_token params[:code],
+                                           :redirect_uri => callback_url
+
+        settings.model.approve(data.user.username, data.access_token)
+
+        '\m/'
+      rescue Object => e
+        puts res.inspect
+        raise
+      end
+    end
+
+    # Simple text-based search, designed for a chat bot to insert into the
+    # chat stream.
+    #
+    # Example:
+    #
+    #     rick:  hubot: instagram near indio, CA
+    #     hubot: SUBJECT at LOCATION by USER @ TIME INSTAGRAM-URL
     get '/search' do
       images = @instagram.media_search \
         params[:lat] || settings.instagram_lat,
@@ -32,6 +63,8 @@ module ChatGram
       end
     end
 
+    # This is the actual realtime webhook from Instagram.  See the "Receiving
+    # Updates" area on http://instagram.com/developer/realtime/.
     post '/image' do
       res=nil
       begin
@@ -53,32 +86,34 @@ module ChatGram
       end
     end
 
-    get '/auth' do
-      redirect @instagram.authorize_url \
-            :redirect_uri => callback_url,
-            :scope => 'basic likes'
-    end
-
-    get '/auth/callback' do
-      res = nil
-      begin
-        data = @instagram.get_access_token params[:code],
-                                           :redirect_uri => callback_url
-
-        settings.model.approve(data.user.username, data.access_token)
-
-        '\m/'
-      rescue Object => e
-        puts res.inspect
-        raise
-      end
+    # This verifies the Instagram pubsub webhook.  After creating an Instagram
+    # subscription, they will contact this site.  You will need to repeat
+    # the challenge so that Instagram will trust this webhook.
+    #
+    # See http://instagram.com/developer/realtime/ for details.
+    get '/image' do
+      params['hub.challenge'] || '\m/'
     end
 
     helpers do
-      def speak(text)
-        settings.service.speak(text)
+      # Public: Sends the given sentences to the chat service.
+      #
+      # sentences - One or more Strings.
+      #
+      # Returns nothing.
+      def speak(*sentences)
+        sentences.each do |text|
+          settings.service.speak(text)
+        end
       end
 
+      # Public: Generates the text sent to the chat services for a given image
+      # object.
+      #
+      # img - A Hashie instance of the JSON image data.  See the 'data' field
+      #       from http://instagram.com/developer/endpoints/media/
+      #
+      # Returns the String message.
       def image_text(img)
         txt = if capt = img.caption
           if loc = img.location
@@ -100,12 +135,21 @@ module ChatGram
         "%s by %s %s %s" % [txt, img.user.username, ts, img.link]
       end
 
+      # Public: Sends the Instagram Media info to the chat service.
+      #
+      # img - A Hashie instance of the JSON image data.  See the 'data' field
+      #       from http://instagram.com/developer/endpoints/media/
+      #
+      # Returns nothing.
       def display_image(img)
         url = img.images.standard_resolution.url
-        speak image_text(img).strip
-        speak url
+        speak image_text(img).strip, url
       end
 
+      # Generates the OAuth callback URL for this web server by looking at the
+      # request URL.
+      #
+      # Returns a String URL.
       def callback_url
         uri = URI.parse(request.url)
         uri.path = '/auth/callback'
