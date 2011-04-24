@@ -9,7 +9,7 @@ ENV['TZ']              = 'UTC'
 ENV["INSTAGRAM_LAT"]   = 'lat'
 ENV["INSTAGRAM_LNG"]   = 'lng'
 
-require File.expand_path('../chat_gram', __FILE__)
+require File.expand_path('../../chat_gram', __FILE__)
 
 Instagram.configure do |c|
   c.adapter = :test
