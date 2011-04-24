@@ -12,22 +12,18 @@ DB = (url = ENV['DATABASE_URL']) ?
   Sequel.connect(url) :
   Sequel.sqlite
 
+%w(service).each do |lib|
+  require File.expand_path("../lib/chat_gram/#{lib}", __FILE__)
+end
+
 class InstagramCampfireHookApp < Sinatra::Base
   set :instagram_lat    => ENV['INSTAGRAM_LAT'],
       :instagram_lng    => ENV['INSTAGRAM_LNG'],
-      :instagram_client => nil
-
-  set :campfire_http do
-    url  = "https://#{ENV['CAMPFIRE_DOMAIN']}.campfirenow.com/room"
-    conn = Faraday.new url do |b|
-      b.request  :yajl
-      b.adapter  :excon
-    end
-    conn.basic_auth(ENV['CAMPFIRE_TOKEN'], 'X')
-    conn
-  end
-
-  set :campfire_room => ENV["CAMPFIRE_ROOM"]
+      :instagram_client => nil,
+      :service => ChatGram::Service::Campfire.new(
+        :domain => ENV['CAMPFIRE_DOMAIN'],
+        :token  => ENV['CAMPFIRE_TOKEN'],
+        :room   => ENV['CAMPFIRE_ROOM'])
 
   before do
     @instagram = settings.instagram_client || Instagram.client
@@ -101,8 +97,7 @@ class InstagramCampfireHookApp < Sinatra::Base
 
   helpers do
     def speak(text)
-      settings.campfire_http.post("#{settings.campfire_room}/speak.json",
-                                  :message => {:body => text})
+      settings.service.speak(text)
     end
 
     def image_text(img)

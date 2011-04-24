@@ -16,19 +16,6 @@ Instagram.configure do |c|
   c.adapter = :test
 end
 
-class InstagramCampfireHookApp
-  set :environment, :test
-  set :campfire_http do
-    obj = Object.new
-    def obj.post(room, hash)
-      $messages << [room.chomp("/speak.json"), hash[:message][:body]]
-    end
-    obj
-  end
-
-  set :instagram_client, Instagram.client
-end
-
 class Instagram::API
   attr_accessor :stubs
   def connection(raw = false)
@@ -62,6 +49,22 @@ end
 DB[:users].insert :username => 'user!'
 
 class InstagramCampfireHookTest < Test::Unit::TestCase
+  class TestService
+    attr_reader :messages
+    def initialize
+      @messages = []
+    end
+
+    def speak(text)
+      @messages << text
+    end
+  end
+
+  InstagramCampfireHookApp.set \
+    :environment      => :test,
+    :instagram_client => Instagram.client,
+    :service          => (@@service = TestService.new)
+
   include Rack::Test::Methods
 
   def test_receives_webhook
@@ -71,9 +74,9 @@ class InstagramCampfireHookTest < Test::Unit::TestCase
       :object_id => '1234', :changed_aspect => 'media'}]
 
     post '/image', nil, :input => Yajl.dump(events)
-    assert_equal ['photo', 'image!'], $messages.pop
-    assert_equal ['photo', 'caption! at location! by user! on Thu, Feb 03, 2011 @ 05:18 AM link!'], $messages.pop
-    assert_nil $messages.pop
+    assert_equal 'image!', @@service.messages.pop
+    assert_equal 'caption! at location! by user! on Thu, Feb 03, 2011 @ 05:18 AM link!', @@service.messages.pop
+    assert_nil @@service.messages.pop
   end
 
   def test_receives_webhook_without_caption
@@ -85,9 +88,9 @@ class InstagramCampfireHookTest < Test::Unit::TestCase
       :object_id => '1234', :changed_aspect => 'media'}]
 
     post '/image', nil, :input => Yajl.dump(events)
-    assert_equal ['photo', 'image!'], $messages.pop
-    assert_equal ['photo', 'location! by user! on Thu, Feb 03, 2011 @ 05:18 AM link!'], $messages.pop
-    assert_nil $messages.pop
+    assert_equal 'image!', @@service.messages.pop
+    assert_equal 'location! by user! on Thu, Feb 03, 2011 @ 05:18 AM link!', @@service.messages.pop
+    assert_nil @@service.messages.pop
   end
 
   def test_receives_webhook_without_location
@@ -99,9 +102,9 @@ class InstagramCampfireHookTest < Test::Unit::TestCase
       :object_id => '1234', :changed_aspect => 'media'}]
 
     post '/image', nil, :input => Yajl.dump(events)
-    assert_equal ['photo', 'image!'], $messages.pop
-    assert_equal ['photo', 'caption! by user! on Thu, Feb 03, 2011 @ 05:18 AM link!'], $messages.pop
-    assert_nil $messages.pop
+    assert_equal 'image!', @@service.messages.pop
+    assert_equal 'caption! by user! on Thu, Feb 03, 2011 @ 05:18 AM link!', @@service.messages.pop
+    assert_nil @@service.messages.pop
   end
 
   def test_receives_webhook_without_location_or_caption
@@ -113,9 +116,9 @@ class InstagramCampfireHookTest < Test::Unit::TestCase
       :object_id => '1234', :changed_aspect => 'media'}]
 
     post '/image', nil, :input => Yajl.dump(events)
-    assert_equal ['photo', 'image!'], $messages.pop
-    assert_equal ['photo', 'by user! on Thu, Feb 03, 2011 @ 05:18 AM link!'], $messages.pop
-    assert_nil $messages.pop
+    assert_equal 'image!', @@service.messages.pop
+    assert_equal 'by user! on Thu, Feb 03, 2011 @ 05:18 AM link!', @@service.messages.pop
+    assert_nil @@service.messages.pop
   end
 
   def test_receives_webhook_with_recent_time
@@ -129,9 +132,9 @@ class InstagramCampfireHookTest < Test::Unit::TestCase
       :object_id => '1234', :changed_aspect => 'media'}]
 
     post '/image', nil, :input => Yajl.dump(events)
-    assert_equal ['photo', 'image!'], $messages.pop
-    assert_equal ['photo', 'by user! @ 09:18 PM link!'], $messages.pop
-    assert_nil $messages.pop
+    assert_equal 'image!', @@service.messages.pop
+    assert_equal 'by user! @ 09:18 PM link!', @@service.messages.pop
+    assert_nil @@service.messages.pop
   end
 
   def test_searches_by_location
@@ -149,7 +152,7 @@ class InstagramCampfireHookTest < Test::Unit::TestCase
   end
 
   def setup
-    $messages = []
+    @@service.messages.clear
     @instagram = InstagramCampfireHookApp.settings.instagram_client
     @instagram.stubs = Faraday::Adapter::Test::Stubs.new
   end
