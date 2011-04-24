@@ -72,6 +72,13 @@ module ChatGram
         @db[:users].insert :username => username, :token => token
       end
 
+      # Lists all users.
+      #
+      # Returns an Array of Hashes.
+      def users
+        @db[:users].all
+      end
+
       # Creates the database tables.
       #
       # Returns nothing.

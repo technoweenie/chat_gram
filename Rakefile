@@ -1,29 +1,29 @@
 require 'rubygems'
 require 'bundler'
-Bundler.require
+Bundler.setup
 
-DB = (url = ENV['DATABASE_URL']) ?
-  Sequel.connect(url) :
-  Sequel.sqlite
+require File.expand_path("../lib/chat_gram", __FILE__)
 
-task :create do
-  DB.create_table :users do
-    primary_key :id
-    String :username, :unique => true, :null => false
-    String :token
-  end
+model = ChatGram::Model::Database.new(:url => ENV['DATABASE_URL'])
+
+desc "Sets up the Model data store"
+task :setup do
+  model.setup
 end
 
+desc "Adds a user to the data store.  U=username"
 task :add do
-  DB[:users].insert :username => ENV['U']
+  model.insert ENV['U']
 end
 
+desc "Lists all users, and whether they are approved (\m/) or not."
 task :list do
-  DB[:users].each do |user|
+  model.users.each do |user|
     puts "#{user[:username]} #{user[:token] ? '\m/' : ':('}"
   end
 end
 
+desc "Dumps the user data."
 task :dump do
-  puts DB[:users].all
+  puts model.users
 end
