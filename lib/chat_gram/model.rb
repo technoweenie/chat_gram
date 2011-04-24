@@ -1,24 +1,24 @@
 module ChatGram
   # Defines the interface for the data model.
   class Model
-      def initialize(options = {})
-        raise NotImplementedError
-      end
+    def initialize(options = {})
+      raise NotImplementedError
+    end
 
-      def user_exists?(username)
-        raise NotImplementedError
-      end
+    def user_exists?(username)
+      raise NotImplementedError
+    end
 
-      def approve(username, token)
-        raise NotImplementedError
-      end
+    def approve(username, token)
+      raise NotImplementedError
+    end
 
-      def insert(username, token = nil)
-        raise NotImplementedError
-      end
+    def insert(username, token = nil)
+      raise NotImplementedError
+    end
 
-      def setup
-      end
+    def setup
+    end
 
     require 'sequel'
 
