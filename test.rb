@@ -3,6 +3,7 @@ require 'rubygems'
 require 'bundler'
 Bundler.require(:test)
 
+ENV['TZ']              = 'UTC'
 ENV["INSTAGRAM_LAT"]   = 'lat'
 ENV["INSTAGRAM_LNG"]   = 'lng'
 ENV['CAMPFIRE_ROOM']   = 'photo'
@@ -71,7 +72,7 @@ class InstagramCampfireHookTest < Test::Unit::TestCase
 
     post '/image', nil, :input => Yajl.dump(events)
     assert_equal ['photo', 'image!'], $messages.pop
-    assert_equal ['photo', 'caption! at location! by user! on Wed, Feb 02, 2011 @ 09:18 PM link!'], $messages.pop
+    assert_equal ['photo', 'caption! at location! by user! on Thu, Feb 03, 2011 @ 05:18 AM link!'], $messages.pop
     assert_nil $messages.pop
   end
 
@@ -85,7 +86,7 @@ class InstagramCampfireHookTest < Test::Unit::TestCase
 
     post '/image', nil, :input => Yajl.dump(events)
     assert_equal ['photo', 'image!'], $messages.pop
-    assert_equal ['photo', 'location! by user! on Wed, Feb 02, 2011 @ 09:18 PM link!'], $messages.pop
+    assert_equal ['photo', 'location! by user! on Thu, Feb 03, 2011 @ 05:18 AM link!'], $messages.pop
     assert_nil $messages.pop
   end
 
@@ -99,7 +100,7 @@ class InstagramCampfireHookTest < Test::Unit::TestCase
 
     post '/image', nil, :input => Yajl.dump(events)
     assert_equal ['photo', 'image!'], $messages.pop
-    assert_equal ['photo', 'caption! by user! on Wed, Feb 02, 2011 @ 09:18 PM link!'], $messages.pop
+    assert_equal ['photo', 'caption! by user! on Thu, Feb 03, 2011 @ 05:18 AM link!'], $messages.pop
     assert_nil $messages.pop
   end
 
@@ -113,7 +114,7 @@ class InstagramCampfireHookTest < Test::Unit::TestCase
 
     post '/image', nil, :input => Yajl.dump(events)
     assert_equal ['photo', 'image!'], $messages.pop
-    assert_equal ['photo', 'by user! on Wed, Feb 02, 2011 @ 09:18 PM link!'], $messages.pop
+    assert_equal ['photo', 'by user! on Thu, Feb 03, 2011 @ 05:18 AM link!'], $messages.pop
     assert_nil $messages.pop
   end
 
@@ -134,12 +135,12 @@ class InstagramCampfireHookTest < Test::Unit::TestCase
   end
 
   def test_searches_by_location
-    @instagram.stubs.get("/v1/media/search.json?lat=lat&lng=lng&max_timestamp=&min_timestamp=") do
+    @instagram.stubs.get("/v1/media/search.json?distance=1000&lat=lat&lng=lng&max_timestamp=&min_timestamp=") do
       stubbed_image
     end
 
     get "/search"
-    assert_equal "caption! at location! by user! on Wed, Feb 02, 2011 @ 09:18 PM link!\nimage!", last_response.body
+    assert_equal "caption! at location! by user! on Thu, Feb 03, 2011 @ 05:18 AM link!\nimage!", last_response.body
   end
 
   def test_responds_to_challenge
