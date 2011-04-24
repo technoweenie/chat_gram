@@ -6,19 +6,42 @@ require 'bundler'
 Bundler.setup
 require File.expand_path("../lib/chat_gram/app", __FILE__)
 
+# See http://instagr.am/developer/manage/
 Instagram.configure do |c|
-  c.client_id     = ENV['INSTAGRAM_ID']
+  # Your OAuth Client ID
+  c.client_id = ENV['INSTAGRAM_ID']
+
+  # Your OAuth Client Secret
   c.client_secret = ENV['INSTAGRAM_SECRET']
-  c.access_token  = ENV['ACCESS_TOKEN']
+
+  # The access token of the Instagram user that fetches media content and
+  # performs media searches.
+  c.access_token = ENV['ACCESS_TOKEN']
 end
 
-ChatGram::App.set \
-  :instagram_lat    => ENV['INSTAGRAM_LAT'],
-  :instagram_lng    => ENV['INSTAGRAM_LNG'],
+ChatGram::App.set(
+  # The detault latitude for media searches by location.
+  :instagram_lat => ENV['INSTAGRAM_LAT'],
+
+  # The detault longitude for media searches by location.
+  :instagram_lng => ENV['INSTAGRAM_LNG'],
+
+  # Allows you to specify a custom Instagram client instance.
   :instagram_client => nil,
+
+  # Configures the chat service.
   :service => ChatGram::Service::Campfire.new(
+    # The Campfire account subdomain.
     :domain => ENV['CAMPFIRE_DOMAIN'],
-    :token  => ENV['CAMPFIRE_TOKEN'],
-    :room   => ENV['CAMPFIRE_ROOM']),
+
+    # The token to authenticate with Campfire.
+    :token => ENV['CAMPFIRE_TOKEN'],
+
+    # The Campfire Room ID
+    :room => ENV['CAMPFIRE_ROOM']),
+
+  # Configures the data store.
   :model => ChatGram::Model::Database.new(
+    # The URI of the database (automatically set by Heroku).
     :url => ENV['DATABASE_URL'])
+  )
