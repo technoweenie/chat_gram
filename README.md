@@ -1,7 +1,18 @@
 # ChatGram
 
 ChatGram is a barebones Instagram realtime endpoint for posting images
-to a chat service.
+to a chat service.  With it, you can...
+
+* See when friends post pics -- in RealTime (tm)!
+
+  ![](https://img.skitch.com/20110424-kpf4p1xhyejr9icffqg3pk5u5c.jpg)
+
+* Search for recent Instagrams in a given lat/long!
+
+  ![](https://img.skitch.com/20110424-fmj6khg6qq33ttatytkkdfj7s1.jpg)
+
+  (Note: This requires custom location search => lat/long coordinates
+integration).
 
 ## Installation
 
