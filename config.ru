@@ -1,2 +1,2 @@
-require ::File.dirname(__FILE__) + "/instagram_campfire_hook"
-run InstagramCampfireHookApp
+require ::File.dirname(__FILE__) + "/chat_gram"
+run ChatGram::App

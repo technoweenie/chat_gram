@@ -1,3 +1,6 @@
+# This is designed to quickly launch the ChatGram app.  You can also manually
+# require and configure the app yourself if you like.
+
 require 'rubygems'
 require 'bundler'
 Bundler.setup
