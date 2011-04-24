@@ -32,7 +32,7 @@ module ChatGram
         @conn.basic_auth options[:token], 'X'
       end
 
-      # Posts the given message to the Campfire room.
+      # Public: Posts the given message to the Campfire room.
       #
       # text - The String message to be sent to the chat room.
       #

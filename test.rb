@@ -41,13 +41,6 @@ class Instagram::API
   end
 end
 
-DB.create_table :users do
-  primary_key :id
-  String :username, :unique => true, :null => false
-  String :token
-end
-DB[:users].insert :username => 'user!'
-
 class InstagramCampfireHookTest < Test::Unit::TestCase
   class TestService
     attr_reader :messages
@@ -64,6 +57,9 @@ class InstagramCampfireHookTest < Test::Unit::TestCase
     :environment      => :test,
     :instagram_client => Instagram.client,
     :service          => (@@service = TestService.new)
+
+  InstagramCampfireHookApp.settings.model.setup
+  InstagramCampfireHookApp.settings.model.insert 'user!'
 
   include Rack::Test::Methods
 

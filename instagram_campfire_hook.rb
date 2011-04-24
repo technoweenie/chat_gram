@@ -8,11 +8,7 @@ Instagram.configure do |c|
   c.access_token  = ENV['ACCESS_TOKEN']
 end
 
-DB = (url = ENV['DATABASE_URL']) ?
-  Sequel.connect(url) :
-  Sequel.sqlite
-
-%w(service).each do |lib|
+%w(service model).each do |lib|
   require File.expand_path("../lib/chat_gram/#{lib}", __FILE__)
 end
 
@@ -23,7 +19,9 @@ class InstagramCampfireHookApp < Sinatra::Base
       :service => ChatGram::Service::Campfire.new(
         :domain => ENV['CAMPFIRE_DOMAIN'],
         :token  => ENV['CAMPFIRE_TOKEN'],
-        :room   => ENV['CAMPFIRE_ROOM'])
+        :room   => ENV['CAMPFIRE_ROOM']),
+      :model => ChatGram::Model::Database.new(
+        :url => ENV['DATABASE_URL'])
 
   before do
     @instagram = settings.instagram_client || Instagram.client
@@ -61,10 +59,10 @@ class InstagramCampfireHookApp < Sinatra::Base
       data.each do |payload|
         images = @instagram.user_recent_media payload['object_id']
         image  = images.first
-        if DB[:users].where(:username => image.user.username).count.zero?
-          puts "#{image.user.username} is not authorized for campfire"
-        else
+        if settings.model.approved?(image.user.username)
           display_image image
+        else
+          puts "#{image.user.username} is not authorized for campfire"
         end
       end
       'ok'
@@ -85,9 +83,9 @@ class InstagramCampfireHookApp < Sinatra::Base
     begin
       data = @instagram.get_access_token params[:code],
                                          :redirect_uri => callback_url
-      DB[:users].
-        where(:username => data.user.username).
-        update(:token => data.access_token)
+
+      settings.model.approve(data.user.username, data.access_token)
+
       '\m/'
     rescue Object => e
       puts res.inspect
