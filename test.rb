@@ -1,14 +1,13 @@
-require 'test/unit'
 require 'rubygems'
 require 'bundler'
-Bundler.require(:test)
+Bundler.setup(:test)
+
+require 'test/unit'
+require 'rack/test'
 
 ENV['TZ']              = 'UTC'
 ENV["INSTAGRAM_LAT"]   = 'lat'
 ENV["INSTAGRAM_LNG"]   = 'lng'
-ENV['CAMPFIRE_ROOM']   = 'photo'
-ENV['CAMPFIRE_DOMAIN'] = "none"
-ENV['DATABASE_URL']    = 'sqlite:/'
 
 require File.expand_path('../instagram_campfire_hook', __FILE__)
 
@@ -41,7 +40,9 @@ class Instagram::API
   end
 end
 
-class InstagramCampfireHookTest < Test::Unit::TestCase
+class ChatGramAppTest < Test::Unit::TestCase
+  include Rack::Test::Methods
+
   class TestService
     attr_reader :messages
     def initialize
@@ -53,15 +54,14 @@ class InstagramCampfireHookTest < Test::Unit::TestCase
     end
   end
 
-  InstagramCampfireHookApp.set \
+  ChatGram::App.set \
     :environment      => :test,
     :instagram_client => Instagram.client,
-    :service          => (@@service = TestService.new)
+    :service          => (@@service = TestService.new),
+    :model            => (@@model   = ChatGram::Model::Database.new(:url => 'sqlite:/'))
 
-  InstagramCampfireHookApp.settings.model.setup
-  InstagramCampfireHookApp.settings.model.insert 'user!'
-
-  include Rack::Test::Methods
+  @@model.setup
+  @@model.insert 'user!'
 
   def test_receives_webhook
     @instagram.stubs.get("/v1/users/1234/media/recent.json?") { stubbed_image }
@@ -149,12 +149,12 @@ class InstagramCampfireHookTest < Test::Unit::TestCase
 
   def setup
     @@service.messages.clear
-    @instagram = InstagramCampfireHookApp.settings.instagram_client
+    @instagram = ChatGram::App.settings.instagram_client
     @instagram.stubs = Faraday::Adapter::Test::Stubs.new
   end
 
   def app
-    InstagramCampfireHookApp
+    ChatGram::App
   end
 
   def stubbed_image(custom={})
