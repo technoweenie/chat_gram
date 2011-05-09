@@ -2,7 +2,7 @@ module ChatGram
   class App
     module Views
       class Users < Mustache
-        def users
+        def all_users
           @users.each do |u|
             u[:css_class] = u[:token].to_s.empty? ?
               :unauthorized : :authorized
