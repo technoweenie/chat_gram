@@ -59,8 +59,8 @@ Only basic DB support is included.
 
 ## TODO
 
-* Require users to be manually approved.  Don't let just anyone in that
-  happens to know the endpoint url.
-* Admin UI.
+* Document startup env vars better
+* Add yaml config file support.
+* Finish Admin UI.
 * Come up with a clever way to load other chat services or data stores.
 * Bundle into a gem.
