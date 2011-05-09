@@ -4,13 +4,23 @@ require 'sinatra/base'
 
 module ChatGram
   class App < Sinatra::Base
+    enable :sessions
+
     before do
       @instagram = settings.instagram_client || Instagram.client
     end
 
     # lol homepage
     get '/' do
-      'hwat'
+      "hwat (#{session[:login].inspect})"
+    end
+
+    get "/users" do
+      if settings.model.approved?(session[:login])
+        "booya sinatra sessions"
+      else
+        redirect "/auth"
+      end
     end
 
     # This is the endpoint to provide start the OAuth authorization process.
@@ -31,9 +41,12 @@ module ChatGram
         data = @instagram.get_access_token params[:code],
                                            :redirect_uri => callback_url
 
-        settings.model.approve(data.user.username, data.access_token)
-
-        '\m/'
+        if settings.model.approve(data.user.username, data.access_token)
+          session[:login] = data.user.username
+          redirect "/users"
+        else
+          "You're not on the list"
+        end
       rescue Object => e
         puts res.inspect
         raise

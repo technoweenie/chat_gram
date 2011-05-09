@@ -47,6 +47,8 @@ module ChatGram
       #
       # Returns true if the user is approved, or false.
       def approved?(username)
+        return false if username.to_s.empty?
+
         user = @db[:users].where(:username => username).first
         user && !user[:token].to_s.empty?
       end
@@ -58,7 +60,8 @@ module ChatGram
       #
       # Returns true if the user is approved, or false.
       def approve(username, token)
-        return false if token.to_s.empty?
+        return false if username.to_s.empty? ||
+          token.to_s.empty?
 
         num = @db[:users].
           where(:username => username).
