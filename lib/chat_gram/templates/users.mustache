@@ -1,6 +1,14 @@
+<h3>Current Users <a id="add-toggle" href="#add">+Add User</a></h3>
+
+<form id="user-form" action="/users" method="post"
+style="display:none">
+<div>
+<input type="text" name="username" />
+</div>
+</form>
+
 <ul id="users">
-  <h3>Current Users <a href="#add">+Add User</a></h3>
 {{#users}}
-  <li class="authorized">{{username}} <a href="#remove">Remove</a></li>
+  <li class="{{css_class}}">{{username}} <a href="#remove">Remove</a></li>
 {{/users}}
 </ul>

@@ -79,9 +79,12 @@ module ChatGram
       # username - The String Instagram username.
       # token    - the optional String OAuth token.
       #
-      # Returns nothing.
+      # Returns false if the username is blank, or true.
       def insert(username, token = nil)
+        return false if username.to_s.empty?
         @db[:users].insert :username => username, :token => token
+      rescue Sequel::DatabaseError
+        false
       end
 
       # Lists all users.

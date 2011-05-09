@@ -38,6 +38,11 @@ module ChatGram
       end
     end
 
+    post "/users" do
+      settings.model.insert(params[:username])
+      redirect "/users"
+    end
+
     # This is the endpoint to provide start the OAuth authorization process.
     #
     # See http://instagram.com/developer/auth/

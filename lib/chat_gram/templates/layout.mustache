@@ -2,6 +2,16 @@
 <head>
 	<title>Hubot+Instagram</title>
 </head>
+<script type="text/javascript"
+src="http://code.jquery.com/jquery-1.6.min.js"></script>
+<script type="text/javascript">
+$(document).ready(function() {
+  $("#add-toggle").click(function() {
+    $('#user-form').toggle()
+  })
+})
+</script>
+
 <style type="text/css">
 	body {
 		margin: 50px 0;
@@ -9,9 +19,14 @@
 		font-size: 12px;
 	}
 	
-	#users {
+	#wrapper {
 		margin: 0 auto;
 		width: 300px;
+  }
+
+	#wrapper a { float: right; }
+
+  #users {
 		list-style: none;
 		padding: 0;
 	}
@@ -24,8 +39,6 @@
 	.authorized { background: #efe; }
 	.unauthorized { background: #fee; }
 
-	#users a { float: right; }
-
 	h3 {
 		margin: 0 0 20px 0;
 	}
@@ -33,9 +46,17 @@
 	h3 a {
 		font-weight: normal;
 	}
+
+  #user-form input {
+    border: solid 1px #555;
+    font-size: 175%;
+    width: 300px;
+  }
 </style>
 <body>
+<div id="wrapper">
 {{{yield}}}
+</div>
 </body>
 </html>
 
