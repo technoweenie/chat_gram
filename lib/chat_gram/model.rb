@@ -47,7 +47,8 @@ module ChatGram
       #
       # Returns true if the user is approved, or false.
       def approved?(username)
-        !@db[:users].where(:username => username).count.zero?
+        user = @db[:users].where(:username => username).first
+        user && !user[:token].to_s.empty?
       end
 
       # Public: Approves the given user and assigns their OAuth token.
@@ -55,11 +56,19 @@ module ChatGram
       # username - The String Instagram username.
       # token    - The String OAuth token.
       #
-      # Returns nothing.
+      # Returns true if the user is approved, or false.
       def approve(username, token)
-        @db[:users].
+        return false if token.to_s.empty?
+
+        num = @db[:users].
           where(:username => username).
           update(:token   => token)
+
+        if num > 1
+          raise "Multiple users named #{username.inspect}"
+        else
+          num == 1
+        end
       end
 
       # Inserts the given user data into the db.

@@ -61,7 +61,22 @@ class ChatGramAppTest < Test::Unit::TestCase
     :model            => (@@model   = ChatGram::Model::Database.new(:url => 'sqlite:/'))
 
   @@model.setup
-  @@model.insert 'user!'
+  @@model.insert 'user!', 'abc'
+
+  def test_approves_existing_user
+    @@model.insert('existing')
+    assert !@@model.approved?('existing')
+    assert_equal false, @@model.approve('existing', '')
+    assert !@@model.approved?('existing')
+    assert_equal true, @@model.approve('existing', 'foobar')
+    assert  @@model.approved?('existing')
+  end
+
+  def test_does_not_approve_non_existent_user
+    assert !@@model.approved?('newb')
+    @@model.approve('newb', 'abc')
+    assert !@@model.approved?('newb')
+  end
 
   def test_receives_webhook
     @instagram.stubs.get("/v1/users/1234/media/recent.json?") { stubbed_image }
