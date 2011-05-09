@@ -37,6 +37,7 @@ Gem::Specification.new do |s|
   ## List your runtime dependencies here. Runtime dependencies are those
   ## that are needed for an end user to actually USE your code.
   s.add_dependency('sinatra',   "~> 1.2.0")
+  s.add_dependency('mustache',  "~> 0.99.3")
   s.add_dependency('instagram', "~> 0.6.1")
   s.add_dependency('excon',     '~> 0.5.8')
   s.add_dependency('sequel',    '~> 3.20.0')

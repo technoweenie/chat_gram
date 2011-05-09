@@ -1,10 +1,21 @@
 require File.expand_path('../../chat_gram', __FILE__)
 require 'instagram'
 require 'sinatra/base'
+require 'mustache/sinatra'
 
 module ChatGram
   class App < Sinatra::Base
+    register Mustache::Sinatra
     enable :sessions
+
+    root_dir = File.expand_path('..', __FILE__)
+    set :mustache, {
+      :views     => "#{root_dir}/views/",
+      :templates => "#{root_dir}/templates/"
+    }
+
+    module Views
+    end
 
     before do
       @instagram = settings.instagram_client || Instagram.client
@@ -15,9 +26,13 @@ module ChatGram
       "hwat (#{session[:login].inspect})"
     end
 
+    # List the existing users that have their Instagram photos posted to
+    # the chat service.  Unapproved logins are those that have not authorized
+    # with Instgram yet.
     get "/users" do
       if settings.model.approved?(session[:login])
-        "booya sinatra sessions"
+        @users = settings.model.users
+        mustache :users
       else
         redirect "/auth"
       end

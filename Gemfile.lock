@@ -4,6 +4,7 @@ PATH
     chat_gram (0.5.0)
       excon (~> 0.5.8)
       instagram (~> 0.6.1)
+      mustache (~> 0.99.3)
       sequel (~> 3.20.0)
       sinatra (~> 1.2.0)
       yajl-ruby (~> 0.8.2)
@@ -28,6 +29,7 @@ GEM
       ruby-hmac (~> 0.4.0)
     multi_json (0.0.5)
     multipart-post (1.1.0)
+    mustache (0.99.3)
     rack (1.2.2)
     rack-test (0.5.6)
       rack (>= 1.0)
@@ -47,6 +49,7 @@ DEPENDENCIES
   chat_gram!
   excon (~> 0.5.8)
   instagram (~> 0.6.1)
+  mustache (~> 0.99.3)
   rack-test
   sequel (~> 3.20.0)
   sinatra (~> 1.2.0)
