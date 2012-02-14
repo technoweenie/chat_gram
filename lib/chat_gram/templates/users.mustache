@@ -1,7 +1,7 @@
 <h3>Current Users <a id="add-toggle" href="#add">+Add User</a></h3>
 
 <form id="user-form" action="/users" method="post"
-style="display:none">
+  style="display:none">
 <div>
 <input type="text" name="username" />
 </div>
@@ -9,6 +9,7 @@ style="display:none">
 
 <ul id="users">
 {{#all_users}}
-  <li class="{{css_class}}">{{username}} <a href="#remove">Remove</a></li>
+  <li class="{{css_class}}">{{username}} <a href="#remove" data-username="{{username}}" class="remove-link">Remove</a></li>
 {{/all_users}}
 </ul>
+
