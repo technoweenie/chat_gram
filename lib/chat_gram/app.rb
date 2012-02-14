@@ -43,6 +43,11 @@ module ChatGram
       redirect "/users"
     end
 
+    delete '/users/:username' do
+      settings.model.remove params[:username]
+      'ok'
+    end
+
     # This is the endpoint to provide start the OAuth authorization process.
     #
     # See http://instagram.com/developer/auth/
