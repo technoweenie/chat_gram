@@ -9,6 +9,21 @@ $(document).ready(function() {
   $("#add-toggle").click(function() {
     $('#user-form').toggle()
   })
+  $("#users .remove-link").click(function() {
+    var self = $(this)
+      , li = self.parent()
+      , user = self.data('username')
+      , url = "/users/" + user
+    $.ajax(url,
+      { type: "DELETE"
+      , complete: function(xhr, status) {
+          if(status == 'success')
+            li.hide()
+          else
+            alert(status)
+        }
+      })
+  })
 })
 </script>
 
