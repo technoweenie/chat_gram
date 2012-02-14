@@ -70,7 +70,7 @@ module ChatGram
           session[:login] = data.user.username
           redirect "/users"
         else
-          "You're not on the list"
+          "You're not on the list.  Get someone to add you to #{absolute_url("/auth")}."
         end
       rescue Object => e
         puts res.inspect
@@ -189,8 +189,12 @@ module ChatGram
       #
       # Returns a String URL.
       def callback_url
+        absolute_url("/auth/callback")
+      end
+
+      def absolute_url(path)
         uri = URI.parse(request.url)
-        uri.path = '/auth/callback'
+        uri.path = path
         uri.query = nil
         uri.to_s
       end
