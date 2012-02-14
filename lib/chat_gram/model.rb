@@ -5,7 +5,30 @@ module ChatGram
       raise NotImplementedError
     end
 
-    def user_exists?(username)
+    # Public: Checks to see if the user is registered.
+    #
+    # username - The String Instagram username.
+    #
+    # Returns true if the user exists, or false.
+    def exists?(username)
+      find(username) ? true : false
+    end
+
+    # Public: Checks to see if the user is approved to have their photos
+    # posted.
+    #
+    # username - The String Instagram username.
+    #
+    # Returns true if the user is approved, or false.
+    def approved?(username)
+      if user = find(username)
+        !user[:token].to_s.empty?
+      else
+        false
+      end
+    end
+
+    def find(username)
       raise NotImplementedError
     end
 
@@ -25,7 +48,7 @@ module ChatGram
     # Defines a class that stores users in a DB using the Sequel gem.  This
     # tracks the OAuth token for users, and makes sure only approved users
     # have their photos posted to the chat service.
-    class Database
+    class Database < Model
       attr_reader :db
 
       # Initializes a new Sequel connection.
@@ -39,18 +62,15 @@ module ChatGram
           Sequel.connect(url) :
           Sequel.sqlite
       end
-
-      # Public: Checks to see if the user is approved to have their photos
-      # posted.
+      
+      # Public: Finds the user record.
       #
       # username - The String Instagram username.
       #
-      # Returns true if the user is approved, or false.
-      def approved?(username)
-        return false if username.to_s.empty?
-
-        user = @db[:users].where(:username => username).first
-        user && !user[:token].to_s.empty?
+      # Returns a Hash of the user attributes, or nil.
+      def find(username)
+        return if username.to_s.empty?
+        @db[:users].where(:username => username).first
       end
 
       # Public: Approves the given user and assigns their OAuth token.
@@ -74,7 +94,7 @@ module ChatGram
         end
       end
 
-      # Inserts the given user data into the db.
+      # Public: Inserts the given user data into the db.
       #
       # username - The String Instagram username.
       # token    - the optional String OAuth token.
@@ -83,6 +103,18 @@ module ChatGram
       def insert(username, token = nil)
         return false if username.to_s.empty?
         @db[:users].insert :username => username, :token => token
+      rescue Sequel::DatabaseError
+        false
+      end
+
+      # Public: Removes the user from the db.
+      #
+      # username - The String Instagram username.
+      #
+      # Returns false if the username is blank, or true.
+      def remove(username)
+        return false if username.to_s.empty?
+        @db[:users].where(:username => username).delete && true
       rescue Sequel::DatabaseError
         false
       end

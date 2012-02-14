@@ -76,6 +76,36 @@ class ChatGramAppTest < Test::Unit::TestCase
     assert !@@model.approved?('newb')
     @@model.approve('newb', 'abc')
     assert !@@model.approved?('newb')
+    assert !@@model.exists?('newb')
+  end
+
+  def test_removes_nonexisting_user
+    assert @@model.remove('newb')
+    assert !@@model.approved?('newb')
+    assert !@@model.exists?('newb')
+  end
+
+  def test_removes_new_user
+    username = 'new-user-to-remove'
+    @@model.insert username
+    assert !@@model.approved?(username)
+    assert @@model.exists?(username)
+
+    @@model.remove username
+    assert !@@model.approved?(username)
+    assert !@@model.exists?(username)
+  end
+
+  def test_removes_new_user
+    username = 'approved-user-to-remove'
+    @@model.insert username
+    @@model.approve username, 'token'
+    assert @@model.approved?(username)
+    assert @@model.exists?(username)
+
+    @@model.remove username
+    assert !@@model.approved?(username)
+    assert !@@model.exists?(username)
   end
 
   def test_receives_webhook
