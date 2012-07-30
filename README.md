@@ -21,6 +21,8 @@ integration).
 3. `bin/rake chatgram:setup` to create the database.
 4. `bin/rackup config.ru` to start the server.
 
+See `chat_gram.rb` for the env variables.
+
 If you don't want to use Bundler or Rubygems, you can require
 `chat_gram/app` manually and start it up like any other Rack
 application.  Booya.
@@ -44,18 +46,16 @@ CouchDB...
 
 ### Chat Services
 
-The only service supported currently is [Campfire][cf].  I'd love to get
-[Convore][cv] support at some point.
+The only service supported currently is [Campfire][cf].
 
 [cf]: https://campfirenow.com
-[cv]: https://convore.com
 
 ### Data Store
 
 The data store has a [simple API][dsapi] and can basically support anything.
 Only basic DB support is included.
 
-[dsapi]: https://github.com/technoweenie/instagram_campfire_hook/blob/master/lib/chat_gram/model.rb#L2-3
+[dsapi]: https://github.com/technoweenie/chat_gram/blob/master/lib/chat_gram/model.rb#L2-3
 
 ## TODO
 

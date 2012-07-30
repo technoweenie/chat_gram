@@ -62,7 +62,7 @@ module ChatGram
           Sequel.connect(url) :
           Sequel.sqlite
       end
-      
+
       # Public: Finds the user record.
       #
       # username - The String Instagram username.
