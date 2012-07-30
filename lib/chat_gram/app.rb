@@ -199,5 +199,10 @@ module ChatGram
         uri.to_s
       end
     end
+
+    def self.init(options = {})
+      set(options)
+      p settings.model
+    end
   end
 end

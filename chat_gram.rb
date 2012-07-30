@@ -19,7 +19,7 @@ Instagram.configure do |c|
   c.access_token = ENV['ACCESS_TOKEN']
 end
 
-ChatGram::App.set(
+ChatGram::App.init(
   # The detault latitude for media searches by location.
   :instagram_lat => ENV['INSTAGRAM_LAT'],
 
