@@ -1,6 +1,7 @@
 source :gemcutter
 
 #gemspec
+gem 'rake'
 gem 'sinatra',   "~> 1.2.0"
 gem 'mustache',  "~> 0.99.3"
 gem 'instagram', "~> 0.6.1"

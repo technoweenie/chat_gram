@@ -17,9 +17,9 @@ integration).
 ## Installation
 
 1. Clone the repo [from GitHub][gh].
-2. `bundle install` to load the right dependencies.
-3. `rake db:create` to create the database.
-4. `bundle exec rackup config.ru` to start the server.
+2. `bundle install --binstubs` to load the right dependencies.
+3. `bin/rake chatgram:setup` to create the database.
+4. `bin/rackup config.ru` to start the server.
 
 If you don't want to use Bundler or Rubygems, you can require
 `chat_gram/app` manually and start it up like any other Rack
