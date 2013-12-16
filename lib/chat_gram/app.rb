@@ -154,7 +154,7 @@ module ChatGram
       # Returns the String message.
       def image_text(img)
         txt = if capt = img.caption
-          if loc = img.location
+          if loc = img.location && !loc.name.empty?
             "#{capt.text} at #{loc.name}"
           else
             capt.text
